@@ -1,10 +1,5 @@
-from astropy.table import Table
-import matplotlib.pyplot as plt
-import numpy as np
 from scipy.interpolate import interp1d
-import pickle
-import gzip
-
+import numpy as np
 import glob
 import os
 
