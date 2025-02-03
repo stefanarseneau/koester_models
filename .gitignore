@@ -1,2 +1,4 @@
 *.pkl
 *.npy
+koester.egg-info/ 
+build/

@@ -1,5 +1,6 @@
 import numpy as np
-from scipy.interpolate import RBFInterpolator
+from scipy.interpolate import RegularGridInterpolator
+
 import os
 
 basepath = os.path.dirname(os.path.abspath(__file__))
@@ -9,15 +10,22 @@ class WDInterpolator:
         self.theta = np.load(os.path.join(basepath, type, 'theta.npy'))
         self.fluxes = np.load(os.path.join(basepath, type, 'flux.npy'))
         self.wavl_grid = np.load(os.path.join(basepath, type, 'wavl.npy'))
-        self.build_interp_points()
+        self.build_interpolator()
 
-    def build_interp_points(self):
-        # normalize the input variables for easier interpolation
-        mean_theta, std_theta = np.mean(self.theta, axis=0, keepdims=True), np.std(self.theta, axis=0, keepdims=True)
-        theta_norm = (self.theta - mean_theta) / std_theta
-        # compute the interpolator function
-        def interp(x):
-            x_norm = (x - mean_theta) / std_theta # normalize x to pass to the interpolator
-            return RBFInterpolator(theta_norm, self.fluxes, kernel='linear')(x_norm)[0] # perform RBF interpolation 
-        # return the interpolator function
-        self.interpolator = interp
+    def build_interpolator(self):
+        self.unique_teff = np.array(sorted(list(set(self.theta[:,0]))))
+        self.unique_logg = np.array(sorted(list(set(self.theta[:,1]))))
+        self.flux_grid = np.zeros((len(self.unique_teff), 
+                                len(self.unique_logg), 
+                                len(self.wavl_grid)))
+
+        for i in range(len(self.unique_teff)):
+            for j in range(len(self.unique_logg)):
+                target = [self.unique_teff[i], self.unique_logg[j]]
+                try:
+                    indx = np.where((self.theta == target).all(axis=1))[0][0]
+                    self.flux_grid[i,j] = self.fluxes[indx]
+                except IndexError:
+                    self.flux_grid[i,j] += -999
+
+        self.model_spec = RegularGridInterpolator((self.unique_teff, self.unique_logg), self.flux_grid) 
