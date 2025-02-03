@@ -6,10 +6,16 @@ import os
 basepath = os.path.dirname(os.path.abspath(__file__))
 
 class WDInterpolator:
-    def __init__(self, type = 'DA'):
+    def __init__(self, type = 'DA', wavl_bounds = (3600, 9000)):
         self.theta = np.load(os.path.join(basepath, type, 'theta.npy'))
         self.fluxes = np.load(os.path.join(basepath, type, 'flux.npy'))
         self.wavl_grid = np.load(os.path.join(basepath, type, 'wavl.npy'))
+        
+        self.wavl_bounds = wavl_bounds
+        mask = (self.wavl_bounds[0] < self.wavl_grid) & (self.wavl_grid < self.wavl_bounds[1])
+        self.wavl_grid = self.wavl_grid[mask]
+        self.fluxes = self.fluxes[:,mask]
+        
         self.build_interpolator()
 
     def build_interpolator(self):
@@ -27,5 +33,4 @@ class WDInterpolator:
                     self.flux_grid[i,j] = self.fluxes[indx]
                 except IndexError:
                     self.flux_grid[i,j] += -999
-
         self.model_spec = RegularGridInterpolator((self.unique_teff, self.unique_logg), self.flux_grid) 
