@@ -43,7 +43,7 @@ def interpolate_onto_best(wavls, fluxes):
 
 def process_dataset(type = 'DA'):
     assert type in ['DA', 'DB', 'ELM']
-    da_files = glob.glob(f'koester/{type}/*.dk')
+    da_files = glob.glob(os.path.join(basepath, type, '*.dk'))
     # read in the parameters from each file
     theta, fluxes, wavls = [], [], []
     for file in da_files:
