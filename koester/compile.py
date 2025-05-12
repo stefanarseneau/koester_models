@@ -39,7 +39,7 @@ def interpolate_onto_best(wavls, fluxes):
     for w, f in zip(wavls, fluxes):
         interp_func = interp1d(w, f, kind='cubic', bounds_error=False)
         interpolated_fluxes.append(interp_func(common_wavelengths))
-    return np.array(common_wavelengths), np.array(interpolated_fluxes)
+    return np.array(common_wavelengths), np.array(interpolated_fluxes) * 1e-8
 
 def process_dataset(type = 'DA'):
     assert type in ['DA', 'DB', 'ELM']
@@ -58,6 +58,11 @@ def process_dataset(type = 'DA'):
     np.save(os.path.join(basepath, type, 'theta.npy'), theta)
     np.save(os.path.join(basepath, type, 'wavl.npy'), wavl_grid)
     np.save(os.path.join(basepath, type, 'flux.npy'), interp_flux)
+
+def purge_tables(type = 'DA'):
+    assert type in ['DA', 'DB', 'ELM']
+    for file in glob.glob(os.path.join(basepath, type, '*.npy')):
+        os.remove(file)
 
 def check_exists(type):
     if not (os.path.isfile(os.path.join(basepath, type, 'theta.npy')) and os.path.isfile(os.path.join(basepath, type, 'wavl.npy')) 
